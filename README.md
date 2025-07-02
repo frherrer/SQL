@@ -288,6 +288,7 @@ DROP TRIGGER nombre_trigger;
 ## Ejemplo Completo
 
 ```sql
+-- Crear tabla clientes
 CREATE TABLE clientes (
   id INT PRIMARY KEY AUTO_INCREMENT,
   nombre VARCHAR(100) NOT NULL,
@@ -296,12 +297,58 @@ CREATE TABLE clientes (
   activo BOOLEAN DEFAULT 1
 );
 
+-- Crear tabla pedidos
 CREATE TABLE pedidos (
   id INT PRIMARY KEY AUTO_INCREMENT,
   id_cliente INT NOT NULL,
   fecha_pedido DATETIME DEFAULT CURRENT_TIMESTAMP,
   total DECIMAL(10,2),
+  estado VARCHAR(20) DEFAULT 'pendiente',
   FOREIGN KEY (id_cliente) REFERENCES clientes(id)
 );
+
+-- Insertar datos en clientes
+INSERT INTO clientes (nombre, correo) VALUES
+('Juan Perez', 'juan@example.com'),
+('Ana Gómez', 'ana@example.com');
+
+-- Insertar datos en pedidos
+INSERT INTO pedidos (id_cliente, total) VALUES
+(1, 150.00),
+(1, 300.50),
+(2, 120.75);
+
+-- Consultar todos los clientes activos
+SELECT * FROM clientes WHERE activo = 1;
+
+-- Consultar pedidos con datos del cliente (JOIN)
+SELECT p.id, c.nombre, p.fecha_pedido, p.total, p.estado
+FROM pedidos p
+INNER JOIN clientes c ON p.id_cliente = c.id;
+
+-- Actualizar estado de un pedido
+UPDATE pedidos SET estado = 'completado' WHERE id = 2;
+
+-- Borrar cliente y sus pedidos (asegúrate que se manejen las FK o usar transacción)
+DELETE FROM pedidos WHERE id_cliente = 2;
+DELETE FROM clientes WHERE id = 2;
+
+-- Crear una vista con pedidos pendientes
+CREATE VIEW pedidos_pendientes AS
+SELECT p.id, c.nombre, p.fecha_pedido, p.total
+FROM pedidos p
+JOIN clientes c ON p.id_cliente = c.id
+WHERE p.estado = 'pendiente';
+
+-- Consultar la vista
+SELECT * FROM pedidos_pendientes;
+
+-- Crear trigger para actualizar fecha de registro al modificar cliente
+CREATE TRIGGER actualiza_fecha_registro
+BEFORE UPDATE ON clientes
+FOR EACH ROW
+BEGIN
+  SET NEW.fecha_registro = CURRENT_DATE;
+END;
 ```
 
